@@ -18,6 +18,8 @@ using System.Linq;
 using Content.Server.Power.Components;
 using Robust.Server.Player;
 
+using DrawDepthTag = Robust.Shared.GameObjects.DrawDepth;
+
 namespace Content.Server.Lathe
 {
     [UsedImplicitly]
@@ -245,7 +247,17 @@ namespace Content.Server.Lathe
                 return;
             }
 
-            Spawn(recipe.Result, Transform(uid).Coordinates);
+            var resultAtom = Spawn(recipe.Result, Transform(uid).Coordinates);
+            EntityManager.TryGetComponent<SharedSpriteComponent>(resultAtom, out var sprite);
+            if (sprite != null)
+            {
+                SpriteComponentState old_state = sprite.GetComponentState();
+                int drawDepthSpawn = DrawDepthTag.Default;
+                SpriteComponentState new_state = new(old_state.visible, drawDepthSpawn, old_state.scale, old_state.scale, old_state.offset, old_state.color, old_state.baseRsiPath, old_state.layers, old_state.renderOrder);
+                sprite.HandleComponentState(old_state, new_state)
+            }
+
+
             prodComp.Recipe = null;
 
             // TODO this should probably just be a BUI state, not a special message.
